@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="th" data-t="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Greyhound Café · Promotion Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+/* ===== THEME TOKENS ===== */
+:root[data-t="dark"]{
+  --bg:#0a0a0a; --bg2:#141414; --bg3:#1b1b18;
+  --fg:#ededed; --fg2:#9c9c93; --fg3:#6a6a62;
+  --border:#26261f; --border2:#33332a; --card:#141414;
+  --gold:#c9a227; --gold2:#e7c64f; --gold-soft:rgba(201,162,39,.12); --gold-dim:#6b5a1c;
+  --blue:#5ba3e0; --grid:rgba(255,255,255,.05);
+  --hero-glow:0 0 40px -8px rgba(201,162,39,.28);
+}
+:root[data-t="light"]{
+  --bg:#f4f3ee; --bg2:#ffffff; --bg3:#efeee7;
+  --fg:#1a1a1a; --fg2:#5f5e57; --fg3:#8c8b81;
+  --border:#e4e2d8; --border2:#d6d4c8; --card:#ffffff;
+  --gold:#a8821a; --gold2:#c9a227; --gold-soft:rgba(168,130,26,.1); --gold-dim:#e0cf9f;
+  --blue:#2f7fc4; --grid:rgba(0,0,0,.06);
+  --hero-glow:0 1px 24px -10px rgba(168,130,26,.4);
+}
+@property --p{syntax:'<percentage>';inherits:false;initial-value:0%}
+
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:'Prompt',sans-serif; background:var(--bg); color:var(--fg);
+  font-weight:400; -webkit-font-smoothing:antialiased; min-height:100vh;
+  transition:background .3s ease, color .3s ease;
+}
+.ease{--ease:cubic-bezier(.22,.61,.36,1)}
+
+/* ===== TOPBAR ===== */
+.topbar{
+  position:sticky; top:0; z-index:50;
+  display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+  padding:12px 22px; border-bottom:1px solid var(--border);
+  background:color-mix(in srgb,var(--bg) 78%,transparent);
+  backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+}
+.brand{display:flex; align-items:center; gap:10px}
+.brand .paw{color:var(--gold); font-size:22px; line-height:1}
+.brand b{font-weight:600; font-size:15px; letter-spacing:.6px}
+.brand small{color:var(--fg3); font-size:11px; letter-spacing:.3px}
+.asof{
+  margin-left:4px; font-size:11px; color:var(--gold2);
+  background:var(--gold-soft); border:1px solid var(--border2);
+  padding:4px 10px; border-radius:50px; white-space:nowrap;
+}
+.spacer{flex:1}
+.filters{display:flex; gap:8px; flex-wrap:wrap}
+select.f{
+  font-family:inherit; font-size:12px; color:var(--fg); background:var(--bg2);
+  border:1px solid var(--border2); border-radius:50px; padding:7px 30px 7px 13px; cursor:pointer;
+  appearance:none; -webkit-appearance:none;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' stroke='%239c9c93' stroke-width='2'><path d='M3 5l4 4 4-4'/></svg>");
+  background-repeat:no-repeat; background-position:right 11px center;
+  transition:border-color .2s, transform .1s;
+}
+select.f:hover{border-color:var(--gold)}
+.iconbtn{
+  width:34px; height:34px; border-radius:50px; border:1px solid var(--border2);
+  background:var(--bg2); color:var(--fg2); font-size:16px; cursor:pointer;
+  display:grid; place-items:center; transition:.2s var(--ease);
+}
+.iconbtn:hover{color:var(--gold); border-color:var(--gold)}
+.iconbtn:active{transform:scale(.92)}
+
+/* ===== LAYOUT ===== */
+.wrap{max-width:1320px; margin:0 auto; padding:20px 22px 40px}
+.card{
+  background:var(--card); border:1px solid var(--border); border-radius:14px;
+  transition:transform .25s var(--ease), border-color .25s var(--ease);
+  animation:rise .5s var(--ease) both;
+}
+.card:hover{transform:translateY(-2px); border-color:var(--border2)}
+@keyframes rise{from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:translateY(0)}}
+.sect-h{display:flex; align-items:center; gap:7px; font-size:13px; font-weight:500; margin-bottom:14px}
+.sect-h i{color:var(--gold); font-size:16px}
+.sect-h small{color:var(--fg3); font-weight:400; font-size:11px}
+
+/* ===== HERO ROI ===== */
+.hero{
+  border:1px solid var(--gold); box-shadow:var(--hero-glow);
+  padding:20px 24px; margin-bottom:14px;
+  display:flex; align-items:center; gap:24px; flex-wrap:wrap;
+}
+.hero .lbl{font-size:11px; color:var(--fg2); margin-bottom:3px}
+.hero .big{font-size:27px; font-weight:600; letter-spacing:.3px}
+.hero .gold{color:var(--gold)}
+.hero .flow{color:var(--gold-dim); font-size:20px}
+.hero .right{margin-left:auto; display:flex; gap:26px; text-align:right}
+.hero .right .lbl{color:var(--fg3)}
+.hero .right .v{font-size:20px; font-weight:500}
+
+/* ===== KPI RIBBON ===== */
+.ribbon{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:14px}
+.kpi{padding:13px 15px}
+.kpi .lbl{font-size:11px; color:var(--fg2); display:flex; align-items:center; gap:5px}
+.kpi .lbl i{font-size:13px; color:var(--gold)}
+.kpi .v{font-size:21px; font-weight:600; margin-top:4px}
+
+/* ===== BENTO ===== */
+.bento{display:grid; grid-template-columns:1.7fr 1fr; gap:14px; margin-bottom:14px}
+.col{display:flex; flex-direction:column; gap:14px}
+
+/* leaderboard */
+.lead{padding:16px 18px}
+.prow{margin-bottom:14px}
+.prow:last-child{margin-bottom:0}
+.prow .top{display:flex; justify-content:space-between; align-items:baseline; font-size:12px; margin-bottom:6px}
+.prow .nm{display:flex; align-items:center; gap:7px}
+.prow .nm i{color:var(--gold); font-size:14px}
+.prow .perbill{color:var(--fg3); font-size:11px}
+.prow .amt{color:var(--gold); font-weight:500; white-space:nowrap}
+.track{height:9px; background:var(--bg3); border-radius:6px; overflow:hidden}
+.fill{height:100%; width:0; background:linear-gradient(90deg,var(--gold-dim),var(--gold)); border-radius:6px; transition:width 1s var(--ease)}
+
+/* ring */
+.ringcard{padding:16px; text-align:center}
+.ring-wrap{width:118px; height:118px; margin:6px auto 0; position:relative}
+.ring{
+  width:100%; height:100%; border-radius:50%; --p:0%;
+  background:conic-gradient(var(--gold) 0 var(--p), var(--blue) var(--p) 100%);
+  transition:--p 1.1s var(--ease);
+}
+.ring::after{content:""; position:absolute; inset:18px; border-radius:50%; background:var(--card)}
+.ring-mid{position:absolute; inset:0; display:grid; place-items:center; font-size:12px; color:var(--fg2); z-index:1}
+.ring-leg{display:flex; justify-content:center; gap:14px; margin-top:12px; font-size:11px; color:var(--fg2)}
+.dot{display:inline-block; width:9px; height:9px; border-radius:3px; margin-right:5px; vertical-align:1px}
+
+/* peak */
+.peak{padding:15px 16px}
+.prow2{margin-bottom:11px}
+.prow2:last-child{margin-bottom:0}
+.prow2 .top{display:flex; justify-content:space-between; font-size:11px; margin-bottom:5px}
+.prow2 .hr{color:var(--fg2)}
+.prow2 .amt{color:var(--gold)}
+
+/* chart */
+.chartcard{padding:16px 18px; margin-bottom:14px}
+.legend{display:flex; gap:18px; margin-bottom:12px; font-size:12px; color:var(--fg2)}
+.canvas-wrap{position:relative; height:230px}
+
+/* branches */
+.branches{padding:16px 18px}
+.brow{display:flex; align-items:center; gap:12px; margin-bottom:10px; font-size:12px}
+.brow:last-child{margin-bottom:0}
+.brow .rk{width:18px; color:var(--fg3); font-size:11px; text-align:right}
+.brow .nm{width:178px; color:var(--fg2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.brow .track{flex:1}
+.brow .track .fill{background:linear-gradient(90deg,var(--gold-dim),var(--gold))}
+.brow .v{width:64px; text-align:right; color:var(--fg); white-space:nowrap}
+
+/* footer + toast */
+.foot{text-align:center; color:var(--fg3); font-size:11px; margin-top:26px}
+.toast{
+  position:fixed; top:16px; left:50%; transform:translateX(-50%) translateY(-80px);
+  background:var(--bg2); border:1px solid var(--gold); color:var(--fg);
+  padding:10px 18px; border-radius:50px; font-size:12px; z-index:100;
+  box-shadow:0 8px 30px -10px rgba(0,0,0,.5); transition:transform .35s var(--ease); white-space:nowrap;
+}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast i{color:var(--gold); margin-right:6px}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:900px){
+  .bento{grid-template-columns:1fr}
+  .ribbon{grid-template-columns:repeat(2,1fr)}
+  .hero .right{width:100%; margin-left:0; justify-content:flex-start; gap:30px}
+  .brow .nm{width:120px}
+}
+@media(max-width:560px){
+  .topbar{padding:10px 14px}
+  .wrap{padding:16px 14px 36px}
+  .hero .big{font-size:23px}
+}
+</style>
+</head>
+<body class="ease">
+
+<header class="topbar">
+  <div class="brand">
+    <span class="paw"><i class="ti ti-paw-filled"></i></span>
+    <div>
+      <b>GREYHOUND CAFÉ</b><br>
+      <small>Promotion Intelligence</small>
+    </div>
+  </div>
+  <span class="asof"><i class="ti ti-calendar-event" style="font-size:12px;vertical-align:-1px"></i> ข้อมูล ณ <span id="asof"></span></span>
+  <div class="spacer"></div>
+  <div class="filters">
+    <select class="f" id="f-date">
+      <option>วันนี้</option><option>7 วันล่าสุด</option><option>เดือนนี้</option><option>กำหนดเอง…</option>
+    </select>
+    <select class="f" id="f-brand">
+      <option>ทุกแบรนด์</option><option>Greyhound Café</option><option>Another Hound</option>
+    </select>
+    <select class="f" id="f-shop">
+      <option>ทุกสาขา</option><option>PG-Siam Paragon</option><option>EQ-Emquartier</option>
+    </select>
+  </div>
+  <button class="iconbtn" id="theme" aria-label="สลับโหมดสี"><i class="ti ti-moon"></i></button>
+  <button class="iconbtn" id="refresh" aria-label="รีเฟรช"><i class="ti ti-refresh"></i></button>
+</header>
+
+<main class="wrap">
+
+  <!-- HERO ROI -->
+  <section class="card hero" style="animation-delay:.02s">
+    <div>
+      <div class="lbl">ส่วนลดที่จ่าย · Discount spent</div>
+      <div class="big gold" id="h-disc"></div>
+    </div>
+    <div class="flow"><i class="ti ti-arrow-right"></i></div>
+    <div>
+      <div class="lbl">สร้างยอดขายรวม · Base sale</div>
+      <div class="big" id="h-sale"></div>
+    </div>
+    <div class="right">
+      <div><div class="lbl">Discount / Sale</div><div class="v" style="color:var(--gold2)" id="h-ratio"></div></div>
+      <div><div class="lbl">ส่วนลด / บิล</div><div class="v" id="h-perbill"></div></div>
+    </div>
+  </section>
+
+  <!-- KPI RIBBON -->
+  <section class="ribbon">
+    <div class="card kpi" style="animation-delay:.05s"><div class="lbl"><i class="ti ti-receipt"></i>จำนวนบิล · Bills</div><div class="v" id="k-bills"></div></div>
+    <div class="card kpi" style="animation-delay:.09s"><div class="lbl"><i class="ti ti-chart-bar"></i>Avg / Bill</div><div class="v" id="k-avg"></div></div>
+    <div class="card kpi" style="animation-delay:.13s"><div class="lbl"><i class="ti ti-users"></i>Pax · ลูกค้า</div><div class="v" id="k-pax"></div></div>
+    <div class="card kpi" style="animation-delay:.17s"><div class="lbl"><i class="ti ti-star"></i>Member Bills</div><div class="v" id="k-mem"></div></div>
+  </section>
+
+  <!-- BENTO -->
+  <section class="bento">
+    <div class="card lead" style="animation-delay:.2s">
+      <div class="sect-h"><i class="ti ti-trophy"></i>Promo Leaderboard <small>· โปรโมชั่นยอดนิยม</small></div>
+      <div id="lead-body"></div>
+    </div>
+    <div class="col">
+      <div class="card ringcard" style="animation-delay:.24s">
+        <div class="sect-h" style="margin-bottom:6px"><i class="ti ti-users-group"></i>Member vs Guest</div>
+        <div class="ring-wrap">
+          <div class="ring" id="ring"></div>
+          <div class="ring-mid" id="ring-mid"></div>
+        </div>
+        <div class="ring-leg">
+          <span><span class="dot" style="background:var(--gold)"></span>Guest <span id="lg-guest"></span></span>
+          <span><span class="dot" style="background:var(--blue)"></span>Member <span id="lg-mem"></span></span>
+        </div>
+      </div>
+      <div class="card peak" style="animation-delay:.28s">
+        <div class="sect-h"><i class="ti ti-clock-hour-4"></i>Peak Hours <small>· ชั่วโมงทอง</small></div>
+        <div id="peak-body"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOURLY DUAL CHART -->
+  <section class="card chartcard" style="animation-delay:.3s">
+    <div class="sect-h"><i class="ti ti-chart-area-line"></i>ยอดขาย vs ส่วนลด รายชั่วโมง <small>· Sales vs Discount by hour</small></div>
+    <div class="legend">
+      <span><span class="dot" style="background:var(--gold)"></span>ยอดขาย (Sales)</span>
+      <span><span class="dot" style="background:var(--blue)"></span>ส่วนลด (Discount)</span>
+    </div>
+    <div class="canvas-wrap">
+      <canvas id="hourly" role="img" aria-label="กราฟยอดขายและส่วนลดรายชั่วโมง พีคที่ 13:00 และ 20:00 น."></canvas>
+    </div>
+  </section>
+
+  <!-- BRANCHES -->
+  <section class="card branches" style="animation-delay:.33s">
+    <div class="sect-h"><i class="ti ti-building-store"></i>รายรับตามสาขา <small>· Revenue by branch</small></div>
+    <div id="branch-body"></div>
+  </section>
+
+  <div class="foot" id="foot"></div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================
+   DATA  ←  ก้อนเดียวจบ
+   ต่อ FastAPI ทีหลัง: แทนที่ const DATA = {...}
+   ด้วย  const DATA = await (await fetch('/api/promotion-summary',
+         {headers:{'X-API-Key':'repair123'}})).json();
+   แล้วเรียก boot(DATA); — โครงสร้าง field ต้องตรงตามนี้
+   ========================================================= */
+const DATA = {
+  asOf:"18/06/2026",
+  updated:"19/06/2026 10:26",
+  sample:true,
+  kpi:{ baseSale:989203, bills:1344, discount:107291, avgBill:736, pax:2278, memberBills:229 },
+  memberSplit:{ guest:72.5, member:27.5 },
+  promos:[
+    { name:"Happy Hour Buy 1 Get 1", amount:66240, bills:84,  icon:"ti-gift" },
+    { name:"Silver Hound Discount",  amount:11021, bills:105, icon:"ti-medal-2" },
+    { name:"Black Hound Discount",   amount:6909,  bills:47,  icon:"ti-discount-2" },
+    { name:"Value Price 49 Baht",    amount:5498,  bills:68,  icon:"ti-tag" },
+  ],
+  hours:[6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21],
+  sales:[70,891,4854,4397,11128,36378,96672,147573,85405,51446,41928,63033,79394,117086,137099,114137],
+  discount:[4,60,350,320,1100,3600,9200,13800,9800,9200,8600,9600,9400,12200,12800,7300],
+  branches:[
+    { name:"PG-Siam Paragon", v:88200 },
+    { name:"EQ-Emquartier", v:86400 },
+    { name:"LP-Lad Praw", v:74100 },
+    { name:"PH-Phaholyothin", v:65300 },
+    { name:"CL-Chidlom", v:60200 },
+    { name:"EB-Central Embassy", v:55400 },
+    { name:"NL-Nang Linchee", v:50100 },
+    { name:"SC-Siam Center", v:49300 },
+    { name:"EM-Emporium", v:47200 },
+    { name:"GHHO-Head Office-001 (POP Mart-IS)", v:44100 },
+    { name:"GHRT-Ratchayothin", v:42300 },
+    { name:"GHMP-MedPark", v:41000 },
+    { name:"GHEV-Central Eastville", v:40200 },
+    { name:"GHKT-Krungthep Kreetha", v:34100 },
+    { name:"MB-Mega Bangna", v:32000 },
+  ],
+};
+
+/* ===== helpers ===== */
+const $=s=>document.querySelector(s);
+const baht=n=>'฿'+Math.round(n).toLocaleString('en-US');
+const pct=n=>n.toFixed(1)+'%';
+function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
+
+function countUp(el,end,{prefix='',suffix='',dec=0,dur=900}={}){
+  const start=performance.now();
+  (function tick(now){
+    let p=Math.min((now-start)/dur,1); p=1-Math.pow(1-p,3);
+    const val=end*p;
+    el.textContent=prefix+val.toLocaleString('en-US',{minimumFractionDigits:dec,maximumFractionDigits:dec})+suffix;
+    if(p<1)requestAnimationFrame(tick);
+    else el.textContent=prefix+end.toLocaleString('en-US',{minimumFractionDigits:dec,maximumFractionDigits:dec})+suffix;
+  })(start);
+}
+
+let chart=null;
+
+/* ===== render static lists once ===== */
+function buildLists(d){
+  // leaderboard
+  const maxP=Math.max(...d.promos.map(p=>p.amount));
+  $('#lead-body').innerHTML=d.promos.map(p=>`
+    <div class="prow">
+      <div class="top">
+        <span class="nm"><i class="ti ${p.icon}"></i>${p.name}
+          <span class="perbill">· ${baht(p.amount/p.bills)}/บิล · ${p.bills} บิล</span>
+        </span>
+        <span class="amt">${baht(p.amount)}</span>
+      </div>
+      <div class="track"><div class="fill" data-w="${(p.amount/maxP*100).toFixed(1)}%"></div></div>
+    </div>`).join('');
+
+  // peak hours (top 2 by sales)
+  const top=d.hours.map((h,i)=>({h,v:d.sales[i]})).sort((a,b)=>b.v-a.v).slice(0,3);
+  const maxPk=top[0].v;
+  $('#peak-body').innerHTML=top.map(t=>`
+    <div class="prow2">
+      <div class="top"><span class="hr">${String(t.h).padStart(2,'0')}:00 น.</span><span class="amt">${baht(t.v)}</span></div>
+      <div class="track"><div class="fill" data-w="${(t.v/maxPk*100).toFixed(1)}%"></div></div>
+    </div>`).join('');
+
+  // branches
+  const maxB=Math.max(...d.branches.map(b=>b.v));
+  $('#branch-body').innerHTML=d.branches.map((b,i)=>`
+    <div class="brow">
+      <span class="rk">${i+1}</span>
+      <span class="nm" title="${b.name}">${b.name}</span>
+      <span class="track"><span class="fill" data-w="${(b.v/maxB*100).toFixed(1)}%"></span></span>
+      <span class="v">${baht(b.v)}</span>
+    </div>`).join('');
+}
+
+/* ===== chart (rebuilt on theme change) ===== */
+function buildChart(d){
+  const gold=css('--gold'), blue=css('--blue'), fg3=css('--fg3'), grid=css('--grid');
+  if(chart)chart.destroy();
+  chart=new Chart($('#hourly'),{
+    data:{
+      labels:d.hours.map(h=>String(h).padStart(2,'0')),
+      datasets:[
+        {type:'bar', label:'ยอดขาย', data:d.sales, backgroundColor:gold, borderRadius:5, maxBarThickness:26, yAxisID:'y', order:2},
+        {type:'line', label:'ส่วนลด', data:d.discount, borderColor:blue, backgroundColor:'transparent',
+         tension:.35, pointRadius:0, pointHoverRadius:4, borderWidth:2, yAxisID:'y1', order:1}
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          backgroundColor:css('--bg2'), borderColor:css('--border2'), borderWidth:1,
+          titleColor:css('--fg'), bodyColor:css('--fg2'), padding:10, cornerRadius:8,
+          titleFont:{family:'Prompt'}, bodyFont:{family:'Prompt'},
+          callbacks:{ title:i=>i[0].label+':00 น.', label:c=>'  '+c.dataset.label+': '+baht(c.parsed.y) }
+        }
+      },
+      scales:{
+        x:{grid:{display:false}, ticks:{color:fg3, font:{family:'Prompt',size:11}, autoSkip:false}},
+        y:{grid:{color:grid}, border:{display:false}, ticks:{color:fg3, font:{family:'Prompt',size:11}, callback:v=>'฿'+(v/1000)+'k'}},
+        y1:{position:'right', grid:{display:false}, border:{display:false},
+            ticks:{color:fg3, font:{family:'Prompt',size:11}, callback:v=>'฿'+(v/1000)+'k'}}
+      }
+    }
+  });
+}
+
+/* ===== animate numbers + bars + ring ===== */
+function animate(d){
+  const k=d.kpi;
+  countUp($('#h-disc'),k.discount,{prefix:'฿'});
+  countUp($('#h-sale'),k.baseSale,{prefix:'฿'});
+  countUp($('#h-ratio'),k.discount/k.baseSale*100,{suffix:'%',dec:1});
+  countUp($('#h-perbill'),k.discount/k.bills,{prefix:'฿'});
+  countUp($('#k-bills'),k.bills);
+  countUp($('#k-avg'),k.avgBill,{prefix:'฿'});
+  countUp($('#k-pax'),k.pax);
+  countUp($('#k-mem'),k.memberBills);
+
+  // bars: reset → grow
+  document.querySelectorAll('.fill').forEach(f=>{ f.style.width='0'; });
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    document.querySelectorAll('.fill').forEach(f=>{ f.style.width=f.dataset.w; });
+  }));
+
+  // ring
+  const ring=$('#ring'); ring.style.setProperty('--p','0%');
+  requestAnimationFrame(()=>requestAnimationFrame(()=>ring.style.setProperty('--p',d.memberSplit.guest+'%')));
+  $('#ring-mid').textContent='฿'+Math.round(k.baseSale/1000)+'k';
+  $('#lg-guest').textContent=pct(d.memberSplit.guest);
+  $('#lg-mem').textContent=pct(d.memberSplit.member);
+}
+
+/* ===== boot ===== */
+function boot(d){
+  $('#asof').textContent=d.asOf;
+  $('#foot').innerHTML=`อัพเดท ${d.updated} · `+(d.sample?'<span style="color:var(--gold2)">ข้อมูลตัวอย่าง (sample) — รอเชื่อม FastAPI</span>':'live');
+  buildLists(d);
+  buildChart(d);
+  animate(d);
+}
+
+/* ===== theme toggle ===== */
+const root=document.documentElement;
+try{ const saved=localStorage.getItem('gh-theme'); if(saved)root.setAttribute('data-t',saved); }catch(e){}
+function syncThemeIcon(){ $('#theme').innerHTML=root.getAttribute('data-t')==='dark'?'<i class="ti ti-moon"></i>':'<i class="ti ti-sun"></i>'; }
+$('#theme').onclick=()=>{
+  const next=root.getAttribute('data-t')==='dark'?'light':'dark';
+  root.setAttribute('data-t',next);
+  try{localStorage.setItem('gh-theme',next);}catch(e){}
+  syncThemeIcon(); buildChart(DATA);
+};
+syncThemeIcon();
+
+/* ===== refresh replays animations ===== */
+$('#refresh').onclick=()=>{ animate(DATA); toast('รีเฟรชแล้ว · เชื่อม FastAPI ภายหลัง','ti-refresh'); };
+
+/* ===== filters = stub until API ===== */
+let tT;
+function toast(msg,icon='ti-info-circle'){
+  const t=$('#toast'); t.innerHTML=`<i class="ti ${icon}"></i>${msg}`; t.classList.add('show');
+  clearTimeout(tT); tT=setTimeout(()=>t.classList.remove('show'),2400);
+}
+['f-date','f-brand','f-shop'].forEach(id=>{
+  $('#'+id).onchange=()=>toast('ตัวกรองจะมีผลเมื่อเชื่อม FastAPI','ti-filter');
+});
+
+boot(DATA);
+</script>
+</body>
+</html>
