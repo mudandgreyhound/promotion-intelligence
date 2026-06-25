@@ -82,6 +82,13 @@ select.f:hover{border-color:var(--gold)}
 .canvas-wrap.sm{height:190px}
 .legend{display:flex;gap:16px;margin-bottom:10px;font-size:12px;color:var(--fg2);flex-wrap:wrap}
 .dot{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:5px;vertical-align:1px}
+.live{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--fg2)}
+.live .pdot{width:8px;height:8px;border-radius:50%;background:#3ecf6a;animation:pulse 1.7s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(62,207,106,.5)}70%{box-shadow:0 0 0 7px rgba(62,207,106,0)}100%{box-shadow:0 0 0 0 rgba(62,207,106,0)}}
+.delta.up{color:#3ecf6a}.delta.down{color:#e07a7a}
+.mon-tot{display:flex;gap:26px;flex-wrap:wrap;margin-bottom:14px}
+.mon-tot .lbl{font-size:11px;color:var(--fg2);margin-bottom:3px}
+.mon-tot .n{font-size:23px;font-weight:600}
 
 /* bars */
 .track{height:9px;background:var(--bg3);border-radius:6px;overflow:hidden}
@@ -208,6 +215,15 @@ const DATA = {
   asOf:"18/06/2026", updated:"19/06/2026 10:26", sample:true,
   kpi:{ baseSale:989203, bills:1344, discount:107291, avgBill:736, pax:2278, memberBills:229 },
   memberSplit:{ guest:72.5, member:27.5 },
+  /* sale monitor real-time: ETL upsert จากตาราง sale_monitor_rt ทุก 2-5 นาที */
+  monitor:{ snapshot:"14:32", totalToday:43744.57, ydayFull:241560.00, ydaySameTime:39210.00,
+    shops:[
+      {code:"0004",name:"PG-Siam Paragon",today:2289.80,yday:58986.84},
+      {code:"0034",name:"GHMP-MedPark",today:7708.28,yday:57008.26},
+      {code:"0015",name:"EB-Central Embassy",today:4183.70,yday:48076.17},
+      {code:"2015",name:"GHBE-Head Office",today:6284.00,yday:8373.00},
+      {code:"2008",name:"BEMSN-Bean Hound Makro",today:4263.00,yday:6098.00},
+    ]},
   promos:[
     { name:"Happy Hour Buy 1 Get 1", amount:66240, bills:84, related:198400, icon:"ti-gift" },
     { name:"Silver Hound Discount", amount:11021, bills:105, related:121800, icon:"ti-medal-2" },
@@ -319,6 +335,17 @@ overview(d){
       <div class="right"><div><div class="lbl">Discount / Sale</div><div class="v cu" style="color:var(--gold2)" data-v="${(kp.discount/kp.baseSale*100).toFixed(1)}" data-suf="%" data-dec="1">0</div></div>
       <div><div class="lbl">ส่วนลด / บิล</div><div class="v cu" data-v="${Math.round(kp.discount/kp.bills)}" data-pre="฿">0</div></div></div></section>
     ${kpi([{icon:"ti-receipt",lbl:"จำนวนบิล",v:kp.bills},{icon:"ti-chart-bar",lbl:"Avg/Bill",v:kp.avgBill,pre:"฿"},{icon:"ti-users",lbl:"Pax",v:kp.pax},{icon:"ti-star",lbl:"Member Bills",v:kp.memberBills}])}
+    <section class="card pad" style="margin-bottom:14px">
+      <div class="sect-h" style="margin-bottom:12px"><i class="ti ti-broadcast"></i>Sale Monitor <small>· เรียลไทม์ Today vs Yesterday รายสาขา</small>
+        <span class="live" style="margin-left:auto"><span class="pdot"></span>live · อัปเดต <span id="mon-time"></span></span></div>
+      <div class="mon-tot">
+        <div><div class="lbl">ยอดวันนี้ (ณ ขณะนี้)</div><div class="n cu" style="color:var(--gold)" data-v="${Math.round(d.monitor.totalToday)}" data-pre="฿">0</div></div>
+        <div><div class="lbl">เมื่อวาน (ทั้งวัน)</div><div class="n cu" data-v="${Math.round(d.monitor.ydayFull)}" data-pre="฿">0</div></div>
+        <div><div class="lbl">เทียบ ณ เวลาเดียวกัน (pace)</div><div class="n delta" id="mon-delta"></div></div>
+      </div>
+      <div class="legend"><span><span class="dot" style="background:var(--gold)"></span>วันนี้</span><span><span class="dot" style="background:var(--gold-dim)"></span>เมื่อวาน</span></div>
+      <div class="canvas-wrap"><canvas id="c-monitor" role="img" aria-label="ยอดขายวันนี้เทียบเมื่อวานรายสาขา"></canvas></div>
+    </section>
     <section class="grid2">
       <div class="card pad"><div class="sect-h"><i class="ti ti-trophy"></i>Promo Leaderboard <small>· โปรโมชั่นยอดนิยม</small></div><div id="lead"></div></div>
       <div class="col">
@@ -457,6 +484,18 @@ const WIRE={
       {type:'line',label:'ส่วนลด',data:d.discount,borderColor:b,tension:.35,pointRadius:0,borderWidth:2,yAxisID:'y1',order:1}]},
       options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},tooltip:{...tip(),callbacks:{title:i=>i[0].label+':00 น.',label:c=>'  '+c.dataset.label+': '+baht(c.parsed.y)}}},
       scales:{...baseScales(v=>k(v)),y1:{position:'right',grid:{display:false},border:{display:false},ticks:{color:css('--fg3'),font:{family:'Prompt',size:11},callback:v=>k(v)}}}}}));
+    /* --- sale monitor: today vs yesterday by shop --- */
+    const m=d.monitor;
+    $('#mon-time').textContent=m.snapshot+' น.';
+    const pace=(m.totalToday-m.ydaySameTime)/m.ydaySameTime*100,de=$('#mon-delta');
+    de.className='n delta '+(pace>=0?'up':'down');de.textContent=(pace>=0?'▲ +':'▼ ')+pace.toFixed(1)+'%';
+    charts.push(new Chart($('#c-monitor'),{type:'bar',data:{labels:m.shops.map(s=>s.name),datasets:[
+      {label:'วันนี้',data:m.shops.map(s=>s.today),backgroundColor:css('--gold'),borderRadius:4,maxBarThickness:20},
+      {label:'เมื่อวาน',data:m.shops.map(s=>s.yday),backgroundColor:css('--gold-dim'),borderRadius:4,maxBarThickness:20}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{...tip(),callbacks:{label:c=>c.dataset.label+': '+baht(c.parsed.y)}}},scales:baseScales(v=>k(v))}}));
+    /* live clock tick (ของจริงให้ refetch /api/overview/sale-monitor แทน) */
+    clearInterval(window._monTimer);
+    window._monTimer=setInterval(()=>{const t=$('#mon-time');if(!t){clearInterval(window._monTimer);return;}const n=new Date();t.textContent=String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0')+' น.';},30000);
   },
   top(d){
     const maxS=Math.max(...d.topItems.map(i=>i.sales));
