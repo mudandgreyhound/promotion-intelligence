@@ -332,7 +332,7 @@ function countUp(el,end,o={}){const{prefix='',suffix='',dec=0,dur=850}=o,s=perfo
 function animCU(scope){scope.querySelectorAll('.cu').forEach(el=>countUp(el,+el.dataset.v,{prefix:el.dataset.pre||'',suffix:el.dataset.suf||'',dec:+(el.dataset.dec||0)}));}
 function animBars(scope){scope.querySelectorAll('.fill').forEach(f=>f.style.width='0');requestAnimationFrame(()=>requestAnimationFrame(()=>scope.querySelectorAll('.fill').forEach(f=>f.style.width=f.dataset.w)));}
 function animRing(el,p){el.style.setProperty('--p','0%');requestAnimationFrame(()=>requestAnimationFrame(()=>el.style.setProperty('--p',p+'%')));}
-function kpi(items){return `<section class="ribbon">${items.map((x,i)=>`<div class="card kpi" style="animation-delay:${.04+i*.04}s"><div class="lbl"><i class="ti ${x.icon}"></i>${x.lbl}</div><div class="v cu" data-v="${x.v}" data-pre="${x.pre||''}" data-suf="${x.suf||''}" data-dec="${x.dec||0}">0</div></div>`).join('')}</section>`;}
+function kpi(items){return `<section class="ribbon">${items.map((x,i)=>`<div class="card kpi" style="animation-delay:${.04+i*.04}s"><div class="lbl"><i class="ti ${x.icon}"></i>${x.lbl}</div><div class="v cu"${x.id?` id="${x.id}"`:''} data-v="${x.v}" data-pre="${x.pre||''}" data-suf="${x.suf||''}" data-dec="${x.dec||0}">0</div></div>`).join('')}</section>`;}
 function donut(el,segs,colors){const total=segs.reduce((a,b)=>a+b,0);let acc=0,stops=[];segs.forEach((s,i)=>{const a=acc/total*100,b=(acc+s)/total*100;stops.push(`${colors[i]} ${a}% ${b}%`);acc+=s;});el.style.background=`conic-gradient(${stops.join(',')})`;}
 
 /* base chart opts */
@@ -346,12 +346,12 @@ const PAGES={
 overview(d){
   const kp=d.kpi;
   return `<div class="page">
-    <section class="card hero"><div><div class="lbl">ส่วนลดที่จ่าย · Discount spent</div><div class="big gold cu" data-v="${kp.discount}" data-pre="฿">0</div></div>
+    <section class="card hero"><div><div class="lbl">ส่วนลดที่จ่าย · Discount spent</div><div class="big gold cu" id="h-disc" data-v="${kp.discount}" data-pre="฿">0</div></div>
       <div class="flow"><i class="ti ti-arrow-right"></i></div>
-      <div><div class="lbl">สร้างยอดขายรวม · Base sale</div><div class="big cu" data-v="${kp.baseSale}" data-pre="฿">0</div></div>
-      <div class="right"><div><div class="lbl">Discount / Sale</div><div class="v cu" style="color:var(--gold2)" data-v="${(kp.discount/kp.baseSale*100).toFixed(1)}" data-suf="%" data-dec="1">0</div></div>
-      <div><div class="lbl">ส่วนลด / บิล</div><div class="v cu" data-v="${Math.round(kp.discount/kp.bills)}" data-pre="฿">0</div></div></div></section>
-    ${kpi([{icon:"ti-receipt",lbl:"จำนวนบิล",v:kp.bills},{icon:"ti-chart-bar",lbl:"Avg/Bill",v:kp.avgBill,pre:"฿"},{icon:"ti-users",lbl:"Pax",v:kp.pax},{icon:"ti-star",lbl:"Member Bills",v:kp.memberBills}])}
+      <div><div class="lbl">สร้างยอดขายรวม · Base sale</div><div class="big cu" id="h-sale" data-v="${kp.baseSale}" data-pre="฿">0</div></div>
+      <div class="right"><div><div class="lbl">Discount / Sale</div><div class="v cu" id="h-ratio" style="color:var(--gold2)" data-v="${(kp.discount/kp.baseSale*100).toFixed(1)}" data-suf="%" data-dec="1">0</div></div>
+      <div><div class="lbl">ส่วนลด / บิล</div><div class="v cu" id="h-perbill" data-v="${Math.round(kp.discount/kp.bills)}" data-pre="฿">0</div></div></div></section>
+    ${kpi([{icon:"ti-receipt",lbl:"จำนวนบิล",v:kp.bills,id:"k-bills"},{icon:"ti-chart-bar",lbl:"Avg/Bill",v:kp.avgBill,pre:"฿",id:"k-avg"},{icon:"ti-users",lbl:"Pax",v:kp.pax,id:"k-pax"},{icon:"ti-star",lbl:"Member Bills",v:kp.memberBills,id:"k-mem"}])}
     <section class="card pad" style="margin-bottom:14px">
       <div class="sect-h" style="margin-bottom:12px"><i class="ti ti-broadcast"></i>Sale Monitor <small>· เรียลไทม์ Today vs Yesterday รายสาขา</small>
         <span class="live" style="margin-left:auto"><span class="pdot"></span>live · อัปเดต <span id="mon-time"></span></span></div>
@@ -614,6 +614,12 @@ async function refreshMonitor(){
     if(window._monChart){window._monChart.data.labels=m.shops.map(s=>s.name);
       window._monChart.data.datasets[0].data=m.shops.map(s=>s.today);
       window._monChart.data.datasets[1].data=m.shops.map(s=>s.yday);window._monChart.update();}
+    if(m.kpi){ DATA.kpi=m.kpi; const kp=m.kpi, set=(s,v)=>{const e=$(s);if(e)e.textContent=v;};
+      set('#h-disc',baht(kp.discount)); set('#h-sale',baht(kp.baseSale));
+      set('#h-ratio',(kp.baseSale?(kp.discount/kp.baseSale*100).toFixed(1):'0.0')+'%');
+      set('#h-perbill',baht(kp.bills?kp.discount/kp.bills:0));
+      set('#k-bills',kp.bills.toLocaleString('en-US')); set('#k-avg',baht(kp.avgBill));
+      set('#k-pax',kp.pax.toLocaleString('en-US')); set('#k-mem',kp.memberBills.toLocaleString('en-US')); }
   }catch(e){ const tt=$('#mon-time'); if(tt){const n=new Date();tt.textContent=String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0')+' น.';} }
 }
 
