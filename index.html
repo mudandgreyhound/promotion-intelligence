@@ -290,7 +290,7 @@ const DATA = {
    ทางเลือก: (ก) วาง index.html บนเซิร์ฟเวอร์เดียวกับ API ผ่าน http  หรือ
             (ข) ทำ https ให้ API (reverse proxy + cert / cloudflared tunnel)
    ตั้งค่า window.GH_API ก่อนโหลดไฟล์นี้เพื่อ override ได้ */
-const API = window.GH_API || "http://10.8.1.88:9007";
+const API = window.GH_API || "https://greyhoundcafe.mobile1234.site";
 const API_KEY = "greyhound2026";
 const apiURL = (p)=> API + p + (p.includes('?')?'&':'?') + 'key=' + encodeURIComponent(API_KEY);
 
@@ -318,6 +318,14 @@ const $=s=>document.querySelector(s);
 const baht=n=>'฿'+Math.round(n).toLocaleString('en-US');
 const k=n=>'฿'+Math.round(n/1000)+'k';
 const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+/* แสดง pace % แบบปลอดภัย: ถ้าไม่มีฐานเทียบ (เมื่อวาน=0) โชว์ "—" ไม่ใช่ Infinity% */
+function setDelta(el, today, base){
+  if(!el) return;
+  if(!base || base<=0){ el.className='n delta'; el.style.color='var(--fg3)'; el.textContent='—'; el.title='ยังไม่มีข้อมูลเมื่อวาน (รัน ETL yesterday ก่อน)'; return; }
+  const p=(today-base)/base*100;
+  el.className='n delta '+(p>=0?'up':'down'); el.style.color=''; el.title='';
+  el.textContent=(p>=0?'▲ +':'▼ ')+p.toFixed(1)+'%';
+}
 let charts=[];
 function clearCharts(){charts.forEach(c=>c.destroy());charts=[];}
 function countUp(el,end,o={}){const{prefix='',suffix='',dec=0,dur=850}=o,s=performance.now();(function t(n){let p=Math.min((n-s)/dur,1);p=1-Math.pow(1-p,3);el.textContent=prefix+(end*p).toLocaleString('en-US',{minimumFractionDigits:dec,maximumFractionDigits:dec})+suffix;if(p<1)requestAnimationFrame(t);else el.textContent=prefix+end.toLocaleString('en-US',{minimumFractionDigits:dec,maximumFractionDigits:dec})+suffix;})(s);}
@@ -496,8 +504,7 @@ const WIRE={
     /* --- sale monitor: today vs yesterday by shop --- */
     const m=d.monitor;
     $('#mon-time').textContent=m.snapshot+' น.';
-    const pace=(m.totalToday-m.ydaySameTime)/m.ydaySameTime*100,de=$('#mon-delta');
-    de.className='n delta '+(pace>=0?'up':'down');de.textContent=(pace>=0?'▲ +':'▼ ')+pace.toFixed(1)+'%';
+    const pace_de=$('#mon-delta'); setDelta(pace_de, m.totalToday, m.ydaySameTime);
     window._monChart=new Chart($('#c-monitor'),{type:'bar',data:{labels:m.shops.map(s=>s.name),datasets:[
       {label:'วันนี้',data:m.shops.map(s=>s.today),backgroundColor:css('--gold'),borderRadius:4,maxBarThickness:20},
       {label:'เมื่อวาน',data:m.shops.map(s=>s.yday),backgroundColor:css('--gold-dim'),borderRadius:4,maxBarThickness:20}]},
@@ -603,8 +610,7 @@ async function refreshMonitor(){
     const tt=$('#mon-time'); if(tt) tt.textContent=m.snapshot+' น.';
     const et=$('#mon-today'); if(et) et.textContent=baht(m.totalToday);
     const ey=$('#mon-yday');  if(ey) ey.textContent=baht(m.ydayFull);
-    const pace=(m.totalToday-m.ydaySameTime)/(m.ydaySameTime||1)*100,de=$('#mon-delta');
-    if(de){de.className='n delta '+(pace>=0?'up':'down');de.textContent=(pace>=0?'▲ +':'▼ ')+pace.toFixed(1)+'%';}
+    setDelta($('#mon-delta'), m.totalToday, m.ydaySameTime);
     if(window._monChart){window._monChart.data.labels=m.shops.map(s=>s.name);
       window._monChart.data.datasets[0].data=m.shops.map(s=>s.today);
       window._monChart.data.datasets[1].data=m.shops.map(s=>s.yday);window._monChart.update();}
