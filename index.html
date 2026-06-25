@@ -285,6 +285,15 @@ const DATA = {
   }
 };
 
+/* ===== API CONFIG ===== */
+/* ⚠️ หน้าเว็บอยู่บน https://...github.io  ถ้า API เป็น http:// เบราว์เซอร์จะบล็อก (mixed content)
+   ทางเลือก: (ก) วาง index.html บนเซิร์ฟเวอร์เดียวกับ API ผ่าน http  หรือ
+            (ข) ทำ https ให้ API (reverse proxy + cert / cloudflared tunnel)
+   ตั้งค่า window.GH_API ก่อนโหลดไฟล์นี้เพื่อ override ได้ */
+const API = window.GH_API || "http://10.8.1.88:9007";
+const API_KEY = "greyhound2026";
+const apiURL = (p)=> API + p + (p.includes('?')?'&':'?') + 'key=' + encodeURIComponent(API_KEY);
+
 /* ===== NAV ===== */
 const NAV=[
   {g:"ภาพรวม"},
@@ -339,8 +348,8 @@ overview(d){
       <div class="sect-h" style="margin-bottom:12px"><i class="ti ti-broadcast"></i>Sale Monitor <small>· เรียลไทม์ Today vs Yesterday รายสาขา</small>
         <span class="live" style="margin-left:auto"><span class="pdot"></span>live · อัปเดต <span id="mon-time"></span></span></div>
       <div class="mon-tot">
-        <div><div class="lbl">ยอดวันนี้ (ณ ขณะนี้)</div><div class="n cu" style="color:var(--gold)" data-v="${Math.round(d.monitor.totalToday)}" data-pre="฿">0</div></div>
-        <div><div class="lbl">เมื่อวาน (ทั้งวัน)</div><div class="n cu" data-v="${Math.round(d.monitor.ydayFull)}" data-pre="฿">0</div></div>
+        <div><div class="lbl">ยอดวันนี้ (ณ ขณะนี้)</div><div class="n cu" id="mon-today" style="color:var(--gold)" data-v="${Math.round(d.monitor.totalToday)}" data-pre="฿">0</div></div>
+        <div><div class="lbl">เมื่อวาน (ทั้งวัน)</div><div class="n cu" id="mon-yday" data-v="${Math.round(d.monitor.ydayFull)}" data-pre="฿">0</div></div>
         <div><div class="lbl">เทียบ ณ เวลาเดียวกัน (pace)</div><div class="n delta" id="mon-delta"></div></div>
       </div>
       <div class="legend"><span><span class="dot" style="background:var(--gold)"></span>วันนี้</span><span><span class="dot" style="background:var(--gold-dim)"></span>เมื่อวาน</span></div>
@@ -489,13 +498,14 @@ const WIRE={
     $('#mon-time').textContent=m.snapshot+' น.';
     const pace=(m.totalToday-m.ydaySameTime)/m.ydaySameTime*100,de=$('#mon-delta');
     de.className='n delta '+(pace>=0?'up':'down');de.textContent=(pace>=0?'▲ +':'▼ ')+pace.toFixed(1)+'%';
-    charts.push(new Chart($('#c-monitor'),{type:'bar',data:{labels:m.shops.map(s=>s.name),datasets:[
+    window._monChart=new Chart($('#c-monitor'),{type:'bar',data:{labels:m.shops.map(s=>s.name),datasets:[
       {label:'วันนี้',data:m.shops.map(s=>s.today),backgroundColor:css('--gold'),borderRadius:4,maxBarThickness:20},
       {label:'เมื่อวาน',data:m.shops.map(s=>s.yday),backgroundColor:css('--gold-dim'),borderRadius:4,maxBarThickness:20}]},
-      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{...tip(),callbacks:{label:c=>c.dataset.label+': '+baht(c.parsed.y)}}},scales:baseScales(v=>k(v))}}));
-    /* live clock tick (ของจริงให้ refetch /api/overview/sale-monitor แทน) */
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{...tip(),callbacks:{label:c=>c.dataset.label+': '+baht(c.parsed.y)}}},scales:baseScales(v=>k(v))}});
+    charts.push(window._monChart);
+    /* live: ดึง /api/overview/sale-monitor ทุก 60 วิ (เมื่อ API ต่ออยู่) */
     clearInterval(window._monTimer);
-    window._monTimer=setInterval(()=>{const t=$('#mon-time');if(!t){clearInterval(window._monTimer);return;}const n=new Date();t.textContent=String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0')+' น.';},30000);
+    window._monTimer=setInterval(refreshMonitor,60000);
   },
   top(d){
     const maxS=Math.max(...d.topItems.map(i=>i.sales));
@@ -583,8 +593,38 @@ let tT;function toast(msg,icon='ti-info-circle'){const t=$('#toast');t.innerHTML
 ['f-date','f-brand','f-shop'].forEach(id=>$('#'+id).onchange=()=>toast('ตัวกรองจะมีผลเมื่อเชื่อม FastAPI','ti-filter'));
 
 /* ===== boot ===== */
-$('#asof').textContent=DATA.asOf;
-render(NAV.find(n=>n.id===location.hash.slice(1))?location.hash.slice(1):'overview');
+/* ===== live refresh เฉพาะ Sale Monitor (in-place, ไม่ re-render ทั้งหน้า) ===== */
+async function refreshMonitor(){
+  if(cur!=='overview'){clearInterval(window._monTimer);return;}
+  try{
+    const r=await fetch(apiURL('/api/overview/sale-monitor'));
+    if(!r.ok) throw 0;
+    const m=await r.json(); DATA.monitor=m;
+    const tt=$('#mon-time'); if(tt) tt.textContent=m.snapshot+' น.';
+    const et=$('#mon-today'); if(et) et.textContent=baht(m.totalToday);
+    const ey=$('#mon-yday');  if(ey) ey.textContent=baht(m.ydayFull);
+    const pace=(m.totalToday-m.ydaySameTime)/(m.ydaySameTime||1)*100,de=$('#mon-delta');
+    if(de){de.className='n delta '+(pace>=0?'up':'down');de.textContent=(pace>=0?'▲ +':'▼ ')+pace.toFixed(1)+'%';}
+    if(window._monChart){window._monChart.data.labels=m.shops.map(s=>s.name);
+      window._monChart.data.datasets[0].data=m.shops.map(s=>s.today);
+      window._monChart.data.datasets[1].data=m.shops.map(s=>s.yday);window._monChart.update();}
+  }catch(e){ const tt=$('#mon-time'); if(tt){const n=new Date();tt.textContent=String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0')+' น.';} }
+}
+
+/* ===== boot — โหลดจาก API ก่อน ถ้าไม่ติดใช้ข้อมูลตัวอย่างในไฟล์ ===== */
+(async function(){
+  try{
+    const r=await fetch(apiURL('/api/bi'));
+    if(!r.ok) throw new Error('http '+r.status);
+    const j=await r.json();
+    Object.assign(DATA, j);            // merge: field ไหนไม่มีจาก API ใช้ตัวอย่างเดิม
+  }catch(e){
+    console.warn('API offline → ใช้ข้อมูลตัวอย่าง:', e.message||e);
+    setTimeout(()=>toast('API ออฟไลน์ · ใช้ข้อมูลตัวอย่าง','ti-plug-connected-x'),600);
+  }
+  $('#asof').textContent=DATA.asOf;
+  render(NAV.find(n=>n.id===location.hash.slice(1))?location.hash.slice(1):'overview');
+})();
 </script>
 </body>
 </html>
