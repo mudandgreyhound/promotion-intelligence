@@ -167,6 +167,21 @@ table.tb td.r,table.tb th.r{text-align:right}
 .toast.show{transform:translateX(-50%) translateY(0)}
 .toast i{color:var(--gold);margin-right:6px}
 
+/* LOGIN */
+#login-screen{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;background:var(--bg);padding:16px}
+.login-card{width:100%;max-width:340px;padding:28px 26px;text-align:center}
+.login-card .paw{font-size:34px;color:var(--gold)}
+.login-card h1{font-size:16px;font-weight:600;margin:8px 0 2px}
+.login-card p{font-size:12px;color:var(--fg3);margin-bottom:20px}
+.login-card label{display:block;text-align:left;font-size:11px;color:var(--fg2);margin:0 0 5px}
+.login-card input{width:100%;font-family:inherit;font-size:13px;color:var(--fg);background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:10px 12px;margin-bottom:14px}
+.login-card input:focus{outline:none;border-color:var(--gold)}
+.login-card button{width:100%;font-family:inherit;font-size:13px;font-weight:600;color:#0d0d0a;background:var(--gold);border:none;border-radius:10px;padding:11px;cursor:pointer;transition:opacity .2s}
+.login-card button:hover{opacity:.9}
+.login-card button:disabled{opacity:.5;cursor:default}
+.login-err{font-size:12px;color:#e07a7a;margin-top:12px;min-height:16px}
+[hidden]{display:none!important}
+
 @media(max-width:900px){.grid2{grid-template-columns:1fr}.ribbon{grid-template-columns:repeat(2,1fr)}.hero .right{width:100%;margin-left:0;gap:28px}}
 @media(max-width:760px){
   .app{grid-template-columns:1fr}
@@ -182,12 +197,29 @@ table.tb td.r,table.tb th.r{text-align:right}
 </head>
 <body>
 
+<div id="login-screen">
+  <form class="card login-card" id="login-form">
+    <div class="paw"><i class="ti ti-paw-filled"></i></div>
+    <h1>GREYHOUND CAFÉ</h1>
+    <p>BI Suite · เข้าสู่ระบบเพื่อดูข้อมูล</p>
+    <label for="login-user">Username</label>
+    <input id="login-user" name="username" autocomplete="username" required>
+    <label for="login-pass">Password</label>
+    <input id="login-pass" name="password" type="password" autocomplete="current-password" required>
+    <button type="submit" id="login-btn">เข้าสู่ระบบ</button>
+    <div class="login-err" id="login-err"></div>
+  </form>
+</div>
+
+<div id="app-shell" hidden>
 <header class="topbar">
   <div class="brand"><span class="paw"><i class="ti ti-paw-filled"></i></span><div><b>GREYHOUND CAFÉ</b><br><small>BI Suite</small></div></div>
   <span class="asof"><i class="ti ti-calendar-event" style="font-size:12px;vertical-align:-1px"></i> ข้อมูล ณ <span id="asof"></span></span>
   <div class="spacer"></div>
+  <span class="asof" id="who" style="cursor:default"></span>
   <button class="iconbtn" id="theme" aria-label="สลับโหมดสี"><i class="ti ti-moon"></i></button>
   <button class="iconbtn" id="refresh" aria-label="รีเฟรช"><i class="ti ti-refresh"></i></button>
+  <button class="iconbtn" id="logout" aria-label="ออกจากระบบ"><i class="ti ti-logout"></i></button>
 </header>
 
 <div class="app">
@@ -196,12 +228,23 @@ table.tb td.r,table.tb th.r{text-align:right}
     <div class="filterbar">
       <span class="pgname" id="pgname"></span>
       <div class="spacer"></div>
-      <select class="f" id="f-date"><option>วันนี้</option><option>7 วันล่าสุด</option><option>เดือนนี้</option></select>
-      <select class="f" id="f-brand"><option>ทุกแบรนด์</option><option>Greyhound Café</option><option>Another Hound</option></select>
-      <select class="f" id="f-shop"><option>ทุกสาขา</option><option>PG-Siam Paragon</option><option>EQ-Emquartier</option></select>
+      <select class="f" id="f-date">
+        <option value="today">วันนี้</option>
+        <option value="7d">7 วันล่าสุด</option>
+        <option value="30d">30 วันล่าสุด</option>
+        <option value="month">เดือนนี้</option>
+      </select>
+      <select class="f" id="f-brand">
+        <option value="">ทุกแบรนด์</option>
+        <option value="GC">Greyhound Café</option>
+        <option value="AH">Another Hound</option>
+        <option value="BE">Bean Hound</option>
+      </select>
+      <select class="f" id="f-shop"><option value="">ทุกสาขา</option></select>
     </div>
     <div id="page"></div>
   </main>
+</div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -293,6 +336,19 @@ const DATA = {
 const API = window.GH_API || "https://greyhoundcafe.mobile1234.site";
 const API_KEY = "greyhound2026";
 const apiURL = (p)=> API + p + (p.includes('?')?'&':'?') + 'key=' + encodeURIComponent(API_KEY);
+
+/* ===== AUTH — login ผ่าน /api/auth/login, เก็บ token ไว้ใน localStorage ===== */
+const AUTH_KEY = 'gh_bi_auth';
+function getAuth(){ try{ return JSON.parse(localStorage.getItem(AUTH_KEY) || 'null'); }catch(e){ return null; } }
+function setAuth(a){ try{ localStorage.setItem(AUTH_KEY, JSON.stringify(a)); }catch(e){} }
+function clearAuth(){ try{ localStorage.removeItem(AUTH_KEY); }catch(e){} }
+function authHeaders(){ const a=getAuth(); return a && a.token ? {'Authorization':'Bearer '+a.token} : {}; }
+/* fetch ที่แนบ token อัตโนมัติ + เด้งกลับหน้า login ถ้าโดน 401 (token หมดอายุ/ถูกลบ) */
+async function apiFetch(path){
+  const r = await fetch(apiURL(path), { headers: authHeaders() });
+  if(r.status === 401){ clearAuth(); showLogin('เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่'); throw new Error('unauthorized'); }
+  return r;
+}
 
 /* ===== NAV ===== */
 const NAV=[
@@ -455,29 +511,25 @@ promo(d){
   </div>`;
 },
 forecast(d){
-  const f=d.forecast;
+  const f=d.forecast, reorder=f.reorder||[], risk=reorder.filter(r=>r.risk).length;
   return `<div class="page">
-    ${kpi([{icon:"ti-leaf",lbl:"วัตถุดิบติดตาม",v:f.reorder.length},{icon:"ti-alert-triangle",lbl:"เสี่ยงขาด",v:f.reorder.filter(r=>r.risk).length},{icon:"ti-calendar-stats",lbl:"พยากรณ์ล่วงหน้า",v:7,suf:" วัน"},{icon:"ti-truck-delivery",lbl:"ต้องสั่งซื้อ",v:f.reorder.filter(r=>r.days<3).length}])}
-    <section class="card pad" style="margin-bottom:14px"><div class="sect-h"><i class="ti ti-chart-line"></i>${f.ingredient} <small>· จริง vs พยากรณ์</small></div>
-      <div class="legend"><span><span class="dot" style="background:var(--gold)"></span>จริง (7 วัน)</span><span><span class="dot" style="background:var(--blue)"></span>พยากรณ์ (7 วัน)</span></div>
-      <div class="canvas-wrap sm"><canvas id="c-fc" role="img" aria-label="พยากรณ์การใช้วัตถุดิบ"></canvas></div></section>
-    <section class="card pad"><div class="sect-h"><i class="ti ti-clipboard-list"></i>รายการสั่งซื้อ (Reorder)</div>
-      <table class="tb"><thead><tr><th>วัตถุดิบ</th><th class="r">คงเหลือ</th><th class="r">ใช้/วัน</th><th class="r">พอใช้</th><th class="r">สั่งเพิ่ม</th><th>สถานะ</th></tr></thead>
-      <tbody>${f.reorder.map(r=>`<tr><td>${r.name}</td><td class="r">${r.onhand} ${r.unit}</td><td class="r">${r.perday}</td><td class="r">${r.days} วัน</td><td class="r">${r.reorder} ${r.unit}</td><td><span class="tag ${r.risk?'warn':'ok'}">${r.risk?'เสี่ยงขาด':'ปกติ'}</span></td></tr>`).join('')}</tbody></table></section>
+    ${kpi([{icon:"ti-leaf",lbl:"วัตถุดิบติดตาม",v:reorder.length},{icon:"ti-alert-triangle",lbl:"เสี่ยงขาด/ต้องสั่งซื้อ",v:risk},{icon:"ti-check",lbl:"ปกติ",v:reorder.length-risk}])}
+    <section class="card pad"><div class="sect-h"><i class="ti ti-clipboard-list"></i>รายการสั่งซื้อ (Reorder) <small>· จาก stock snapshot ล่าสุด</small></div>
+      <table class="tb"><thead><tr><th>วัตถุดิบ</th><th class="r">คงเหลือ</th><th class="r">แนะนำสั่งเพิ่ม</th><th>สถานะ</th></tr></thead>
+      <tbody>${reorder.length ? reorder.map(r=>`<tr><td>${r.name}</td><td class="r">${r.onhand} ${r.unit}</td><td class="r">${r.reorder} ${r.unit}</td><td><span class="tag ${r.risk?'warn':'ok'}">${r.risk?'เสี่ยงขาด':'ปกติ'}</span></td></tr>`).join('')
+        : `<tr><td colspan="4" style="color:var(--fg3);text-align:center;padding:20px">ไม่มีข้อมูล</td></tr>`}</tbody></table></section>
   </div>`;
 },
 admin(d){
+  const users = (d.admin && d.admin.users) || [];
+  const rows = users.length ? users.map(u=>`<tr><td>${u.full_name||u.username}</td><td>${u.username}</td><td>${u.role}</td><td><span class="tag ${u.active?'ok':'puz'}">${u.active?'active':'inactive'}</span></td></tr>`).join('')
+    : `<tr><td colspan="4" style="color:var(--fg3);text-align:center;padding:20px">เห็นรายชื่อผู้ใช้ได้เฉพาะบัญชี role admin เท่านั้น</td></tr>`;
   return `<div class="page">
-    <section class="grid2b">
-      <div class="card pad"><div class="sect-h"><i class="ti ti-users-group"></i>ผู้ใช้งาน & สิทธิ์</div>
-        <table class="tb"><thead><tr><th>ชื่อ</th><th>บทบาท</th><th>สาขา</th><th>สถานะ</th></tr></thead>
-        <tbody>${d.admin.users.map(u=>`<tr><td>${u.name}</td><td>${u.role}</td><td>${u.branch}</td><td><span class="tag ${u.status==='active'?'ok':'puz'}">${u.status}</span></td></tr>`).join('')}</tbody></table></div>
-      <div class="card pad"><div class="sect-h"><i class="ti ti-discount"></i>Mapping โปรโมชั่น</div>
-        <table class="tb"><thead><tr><th>Code</th><th>โปรโมชั่น</th><th class="r">เปิดใช้</th></tr></thead>
-        <tbody>${d.admin.promoMap.map(p=>`<tr><td><code style="color:var(--gold2)">${p.code}</code></td><td>${p.promo}</td><td class="r"><span class="sw ${p.status==='on'?'on':''}" data-sw></span></td></tr>`).join('')}</tbody></table></div>
-    </section>
+    <section class="card pad"><div class="sect-h"><i class="ti ti-users-group"></i>ผู้ใช้งาน & สิทธิ์ <small>· ใช้บัญชีเดียวกับระบบ Recipe Master</small></div>
+      <table class="tb"><thead><tr><th>ชื่อ</th><th>Username</th><th>บทบาท</th><th>สถานะ</th></tr></thead>
+      <tbody>${rows}</tbody></table></section>
     <section class="card pad"><div class="sect-h"><i class="ti ti-adjustments"></i>ตั้งค่าระบบ</div>
-      <div class="setrow"><span>เชื่อมต่อ FastAPI (live data)</span><span class="sw" data-sw></span></div>
+      <div class="setrow"><span>เชื่อมต่อ FastAPI (live data)</span><span class="sw ${d.sample?'':'on'}" data-sw></span></div>
       <div class="setrow"><span>รีเฟรชอัตโนมัติทุก 5 นาที</span><span class="sw on" data-sw></span></div>
       <div class="setrow"><span>แจ้งเตือนวัตถุดิบเสี่ยงขาดผ่าน LINE</span><span class="sw on" data-sw></span></div>
       <div class="setrow"><span>โหมดมืดเป็นค่าเริ่มต้น</span><span class="sw on" data-sw></span></div></section>
@@ -558,14 +610,6 @@ const WIRE={
     const maxP=Math.max(...d.promos.map(p=>p.amount));
     $('#promo-lead').innerHTML=d.promos.map(p=>`<div style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px"><span><i class="ti ${p.icon}" style="color:var(--gold);margin-right:6px"></i>${p.name} <span style="color:var(--fg3);font-size:11px">· ${p.bills} บิล · ROI ${(p.related/p.amount).toFixed(1)}×</span></span><span style="color:var(--gold);font-weight:500">${baht(p.amount)}</span></div><div class="track"><div class="fill" data-w="${(p.amount/maxP*100).toFixed(1)}%"></div></div></div>`).join('');
   },
-  forecast(d){
-    const f=d.forecast,L=['-6','-5','-4','-3','-2','-1','วันนี้','+1','+2','+3','+4','+5','+6','+7'];
-    const actual=[...f.actual,...Array(7).fill(null)],predict=[...Array(6).fill(null),f.actual[6],...f.predict];
-    charts.push(new Chart($('#c-fc'),{data:{labels:L,datasets:[
-      {label:'จริง',data:actual,borderColor:css('--gold'),tension:.3,pointRadius:2,borderWidth:2,type:'line'},
-      {label:'พยากรณ์',data:predict,borderColor:css('--blue'),borderDash:[5,4],tension:.3,pointRadius:2,borderWidth:2,type:'line'}]},
-      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{...tip(),callbacks:{label:c=>c.dataset.label+': '+c.parsed.y+' kg'}}},scales:baseScales(v=>v+' kg')}}));
-  },
   admin(){document.querySelectorAll('[data-sw]').forEach(s=>s.onclick=()=>{s.classList.toggle('on');toast('บันทึกการตั้งค่า (เดโม)','ti-device-floppy');});},
 };
 
@@ -595,16 +639,52 @@ $('#theme').onclick=()=>{const n=root.getAttribute('data-t')==='dark'?'light':'d
 syncIcon();
 $('#refresh').onclick=()=>{render(cur);toast('รีเฟรชแล้ว · เชื่อม FastAPI ภายหลัง','ti-refresh');};
 
-/* ===== filters stub ===== */
+/* ===== filters — ผูก state จริง + refetch /api/bi ===== */
 let tT;function toast(msg,icon='ti-info-circle'){const t=$('#toast');t.innerHTML=`<i class="ti ${icon}"></i>${msg}`;t.classList.add('show');clearTimeout(tT);tT=setTimeout(()=>t.classList.remove('show'),2300);}
-['f-date','f-brand','f-shop'].forEach(id=>$('#'+id).onchange=()=>toast('ตัวกรองจะมีผลเมื่อเชื่อม FastAPI','ti-filter'));
 
-/* ===== boot ===== */
+const FILTERS = { date: 'today', brand: '', shop: '' };
+function dateRangeFor(preset){
+  const fmt=d=>d.toISOString().slice(0,10);
+  const today=new Date();
+  if(preset==='7d'){ const f=new Date(today); f.setDate(f.getDate()-6); return {date_from:fmt(f), date_to:fmt(today)}; }
+  if(preset==='30d'){ const f=new Date(today); f.setDate(f.getDate()-29); return {date_from:fmt(f), date_to:fmt(today)}; }
+  if(preset==='month'){ const f=new Date(today.getFullYear(), today.getMonth(), 1); return {date_from:fmt(f), date_to:fmt(today)}; }
+  return {date_from:fmt(today), date_to:fmt(today)};   // 'today'
+}
+function biQuery(){
+  const {date_from,date_to}=dateRangeFor(FILTERS.date);
+  const qs=new URLSearchParams({date_from,date_to});
+  if(FILTERS.brand) qs.set('brand',FILTERS.brand);
+  if(FILTERS.shop)  qs.set('shop',FILTERS.shop);
+  return '/api/bi?'+qs.toString();
+}
+function monitorQuery(){
+  const qs=new URLSearchParams();
+  if(FILTERS.brand) qs.set('brand',FILTERS.brand);
+  if(FILTERS.shop)  qs.set('shop',FILTERS.shop);
+  const s=qs.toString();
+  return '/api/overview/sale-monitor'+(s?'?'+s:'');
+}
+function populateShopFilter(branches){
+  const sel=$('#f-shop'); if(!sel || !branches || !branches.length) return;
+  const keep=sel.value;
+  sel.innerHTML='<option value="">ทุกสาขา</option>'+branches
+    .filter(b=>b.code).map(b=>`<option value="${b.code}">${b.name}</option>`).join('');
+  if([...sel.options].some(o=>o.value===keep)) sel.value=keep;
+}
+async function applyFilters(){
+  try{ await loadAndRender(); toast('อัปเดตข้อมูลตามตัวกรองแล้ว','ti-filter'); }
+  catch(e){ /* apiFetch จัดการ 401 เอง, error อื่นเงียบไว้ไม่ต้อง toast ซ้ำ */ }
+}
+$('#f-date').onchange=e=>{ FILTERS.date=e.target.value; applyFilters(); };
+$('#f-brand').onchange=e=>{ FILTERS.brand=e.target.value; applyFilters(); };
+$('#f-shop').onchange=e=>{ FILTERS.shop=e.target.value; applyFilters(); };
+
 /* ===== live refresh เฉพาะ Sale Monitor (in-place, ไม่ re-render ทั้งหน้า) ===== */
 async function refreshMonitor(){
   if(cur!=='overview'){clearInterval(window._monTimer);return;}
   try{
-    const r=await fetch(apiURL('/api/overview/sale-monitor'));
+    const r=await apiFetch(monitorQuery());
     if(!r.ok) throw 0;
     const m=await r.json(); DATA.monitor=m;
     const tt=$('#mon-time'); if(tt) tt.textContent=m.snapshot+' น.';
@@ -623,19 +703,67 @@ async function refreshMonitor(){
   }catch(e){ const tt=$('#mon-time'); if(tt){const n=new Date();tt.textContent=String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0')+' น.';} }
 }
 
-/* ===== boot — โหลดจาก API ก่อน ถ้าไม่ติดใช้ข้อมูลตัวอย่างในไฟล์ ===== */
-(async function(){
+/* ===== load /api/bi + re-render หน้าปัจจุบัน (ใช้ทั้งตอน boot และตอนเปลี่ยน filter) ===== */
+async function loadAndRender(){
   try{
-    const r=await fetch(apiURL('/api/bi'));
+    const r=await apiFetch(biQuery());
     if(!r.ok) throw new Error('http '+r.status);
     const j=await r.json();
     Object.assign(DATA, j);            // merge: field ไหนไม่มีจาก API ใช้ตัวอย่างเดิม
+    populateShopFilter(DATA.branches);
   }catch(e){
+    if(e.message==='unauthorized') throw e;
     console.warn('API offline → ใช้ข้อมูลตัวอย่าง:', e.message||e);
     setTimeout(()=>toast('API ออฟไลน์ · ใช้ข้อมูลตัวอย่าง','ti-plug-connected-x'),600);
   }
   $('#asof').textContent=DATA.asOf;
-  render(NAV.find(n=>n.id===location.hash.slice(1))?location.hash.slice(1):'overview');
+  render(cur);
+}
+
+/* ===== login / logout ===== */
+function showLogin(err){
+  $('#app-shell').hidden=true;
+  $('#login-screen').hidden=false;
+  $('#login-err').textContent=err||'';
+  $('#login-pass').value='';
+}
+function showApp(){
+  $('#login-screen').hidden=true;
+  $('#app-shell').hidden=false;
+  const a=getAuth();
+  $('#who').textContent = a && a.user ? (a.user.full_name || a.user.username) : '';
+}
+$('#login-form').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const btn=$('#login-btn'); btn.disabled=true;
+  $('#login-err').textContent='';
+  try{
+    const res = await fetch(API + '/api/auth/login', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ username:$('#login-user').value.trim(), password:$('#login-pass').value })
+    });
+    const j = await res.json();
+    if(!j.ok){ $('#login-err').textContent = j.error || 'เข้าสู่ระบบไม่สำเร็จ'; return; }
+    setAuth({ token:j.token, user:j.user });
+    showApp();
+    cur = NAV.find(n=>n.id===location.hash.slice(1)) ? location.hash.slice(1) : 'overview';
+    loadAndRender();
+  }catch(err){
+    $('#login-err').textContent = 'ติดต่อเซิร์ฟเวอร์ไม่ได้ — เช็คอินเทอร์เน็ต/VPN แล้วลองใหม่';
+  }finally{ btn.disabled=false; }
+});
+$('#logout').onclick=()=>{ clearAuth(); showLogin(); };
+
+/* ===== boot ===== */
+(function(){
+  const a=getAuth();
+  if(a && a.token){
+    showApp();
+    cur = NAV.find(n=>n.id===location.hash.slice(1)) ? location.hash.slice(1) : 'overview';
+    loadAndRender();
+  }else{
+    showLogin();
+  }
 })();
 </script>
 </body>
