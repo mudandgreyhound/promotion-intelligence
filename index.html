@@ -135,54 +135,6 @@ select.f:hover{border-color:var(--gold)}
 .heat .dd{color:var(--fg2);display:flex;align-items:center}
 .heat .cell{aspect-ratio:1;border-radius:4px;background:var(--gold);min-height:16px}
 
-/* heatmap 2 — dept × category (variable columns) */
-.heat2{display:grid;gap:3px;font-size:10px;overflow-x:auto}
-.heat2 .hh{color:var(--fg3);text-align:center;padding-bottom:4px;writing-mode:vertical-rl;text-orientation:mixed;max-height:90px;white-space:nowrap}
-.heat2 .dd{color:var(--fg2);display:flex;align-items:center;font-size:11px;padding-right:6px;white-space:nowrap}
-.heat2 .cell{border-radius:4px;background:var(--gold);min-height:26px;min-width:26px;cursor:default}
-
-/* filter chips */
-.chiprow{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
-.chip{font-size:11px;padding:5px 13px;border-radius:20px;border:1px solid var(--border2);background:var(--bg2);color:var(--fg2);cursor:pointer;transition:.15s var(--ease);white-space:nowrap}
-.chip:hover{border-color:var(--gold);color:var(--fg)}
-.chip.on{background:var(--gold-soft);border-color:var(--gold);color:var(--gold2);font-weight:600}
-
-/* sub-tabs (within a card) */
-.subtabs{display:flex;gap:4px;margin-bottom:16px;border-bottom:1px solid var(--border)}
-.subtab{display:flex;align-items:center;gap:6px;padding:9px 16px;font-size:12px;font-weight:500;color:var(--fg2);cursor:pointer;border-bottom:2px solid transparent;transition:.15s var(--ease)}
-.subtab i{font-size:15px}
-.subtab:hover{color:var(--fg)}
-.subtab.on{color:var(--gold);border-bottom-color:var(--gold)}
-
-/* top-N control row */
-.topctrl{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:14px}
-.topctrl label{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--fg2)}
-.topctrl input[type=range]{width:140px;accent-color:var(--gold)}
-.topctrl b{color:var(--gold2);font-weight:600;min-width:22px}
-.topsummary{font-size:11px;color:var(--fg3)}
-.btn2{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;padding:6px 14px;border-radius:20px;border:1px solid var(--gold);background:var(--gold-soft);color:var(--gold2);cursor:pointer;transition:.15s var(--ease);margin-left:auto}
-.btn2:hover{background:var(--gold);color:#0a0a0a}
-
-/* rank list (รายการขายดี) */
-.rankrow{display:flex;align-items:center;gap:12px;padding:10px 8px;border-bottom:1px solid var(--border)}
-.rankrow:last-child{border-bottom:none}
-.rankrow .rk2{width:26px;text-align:right;font-size:13px;font-weight:700;color:var(--fg3);flex-shrink:0}
-.rankrow.r1 .rk2{color:var(--gold)}.rankrow.r2 .rk2{color:#c9c9c9}.rankrow.r3 .rk2{color:#c98c4a}
-.rankrow .rankmain{flex:1;min-width:0}
-.rankrow .rankname{font-size:13px;color:var(--fg);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.rankrow .ranksub{font-size:11px;color:var(--fg3);margin-top:2px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.rankbadge{font-size:10px;padding:1px 8px;border-radius:8px;background:var(--bg3);color:var(--fg2)}
-.rankbadge.c{color:var(--blue)}
-.rankrow .rankamt{font-weight:600;color:var(--gold2);font-size:13px;white-space:nowrap}
-
-/* revenue map (treemap-lite) */
-.tmap{display:flex;flex-wrap:wrap;gap:4px}
-.tm-dept{border-radius:10px;padding:10px 12px;min-width:110px;display:flex;flex-direction:column;justify-content:space-between;color:#0a0a0a}
-.tm-dept .tm-lbl{font-size:11px;font-weight:700;opacity:.85}
-.tm-dept .tm-v{font-size:15px;font-weight:700;margin-top:4px}
-.tm-dept .tm-sub{display:flex;flex-wrap:wrap;gap:3px;margin-top:8px}
-.tm-cat{font-size:9px;padding:2px 7px;border-radius:6px;background:rgba(0,0,0,.18)}
-
 /* table */
 table.tb{width:100%;border-collapse:collapse;font-size:12px}
 table.tb th{text-align:left;color:var(--fg3);font-weight:400;font-size:11px;padding:8px 10px;border-bottom:1px solid var(--border)}
@@ -342,26 +294,6 @@ const DATA = {
     {name:"Green Curry Spaghetti",qty:198,sales:65340},{name:"Hound Burger",qty:176,sales:61600},
   ],
   itemCats:[{name:"จานหลัก",pct:46},{name:"เครื่องดื่ม",pct:22},{name:"ของหวาน",pct:18},{name:"ทานเล่น/สลัด",pct:14}],
-  /* รายการขายทั้งหมด (ไม่ limit 10) พร้อม dept/cat/txn — จาก /api/bi/items */
-  itemsFull:[
-    {name:"Spaghetti Cake",dept:"Food",cat:"Thai Main Dish",qty:412,sales:148320,txn:380},
-    {name:"Greyhound Fried Rice",dept:"Food",cat:"Rice",qty:386,sales:131240,txn:355},
-    {name:"Tom Yum Spaghetti",dept:"Food",cat:"Noodle",qty:341,sales:122760,txn:318},
-    {name:"Crispy Pork Salad",dept:"Food",cat:"Thai Appetizer",qty:298,sales:101320,txn:270},
-    {name:"Iced Latte",dept:"Beverage",cat:"Cold Beverage",qty:540,sales:97200,txn:512},
-    {name:"Complicated Sandwich",dept:"Food",cat:"Open Food",qty:265,sales:92750,txn:240},
-    {name:"Chocolate Lava",dept:"Dessert",cat:"Cake&Crape",qty:243,sales:72900,txn:230},
-    {name:"Pad Thai Hound",dept:"Food",cat:"Noodle",qty:221,sales:70720,txn:205},
-    {name:"Green Curry Spaghetti",dept:"Food",cat:"Thai Main Dish",qty:198,sales:65340,txn:180},
-    {name:"Hound Burger",dept:"Food",cat:"Open Food",qty:176,sales:61600,txn:160},
-    {name:"Matcha Latte",dept:"Beverage",cat:"Cold Beverage",qty:142,sales:46860,txn:135},
-    {name:"Mineral Water",dept:"Beverage",cat:"Water & Soft Drink",qty:436,sales:16867,txn:322},
-    {name:"Ice Cream Sundae",dept:"Dessert",cat:"Ice Cream",qty:120,sales:24000,txn:112},
-    {name:"Thai Milk Tea",dept:"Beverage",cat:"Tea",qty:158,sales:22120,txn:150},
-    {name:"Kids Spaghetti Set",dept:"Food",cat:"Kids Menu",qty:64,sales:19200,txn:60},
-    {name:"House Red Wine (Glass)",dept:"Alcohol",cat:"Open Beverage",qty:38,sales:15200,txn:34},
-    {name:"Gift Voucher 500",dept:"Other",cat:"Gift Voucher",qty:12,sales:6000,txn:12},
-  ],
   menuEng:[
     {name:"Spaghetti Cake",pop:412,margin:68},{name:"Tom Yum Spaghetti",pop:341,margin:64},
     {name:"Iced Latte",pop:540,margin:72},{name:"Chocolate Lava",pop:243,margin:66},
@@ -505,46 +437,14 @@ overview(d){
   </div>`;
 },
 top(d){
-  const items=(d.itemsFull&&d.itemsFull.length)?d.itemsFull:[];
-  const totQ=items.reduce((a,b)=>a+b.qty,0),totS=items.reduce((a,b)=>a+b.sales,0);
-  const best=items.reduce((a,b)=>(b.qty>(a?a.qty:-1)?b:a),null);
+  const totQ=d.topItems.reduce((a,b)=>a+b.qty,0),totS=d.topItems.reduce((a,b)=>a+b.sales,0),maxS=Math.max(...d.topItems.map(i=>i.sales));
   return `<div class="page">
-    ${kpi([{icon:"ti-tools-kitchen-2",lbl:"เมนูที่ขายได้",v:items.length},{icon:"ti-shopping-bag",lbl:"จำนวนจานรวม",v:totQ},{icon:"ti-cash",lbl:"ยอดขายรวม",v:totS,pre:"฿"},{icon:"ti-flame",lbl:"เมนูขายดีสุด (จาน)",v:best?best.qty:0}])}
-    <section class="card pad">
-      <div class="subtabs" id="top-subtabs">
-        <div class="subtab on" data-tab="rank"><i class="ti ti-trophy"></i>Top รายการ</div>
-        <div class="subtab" data-tab="cat"><i class="ti ti-chart-pie"></i>ตามหมวดหมู่</div>
-        <div class="subtab" data-tab="map"><i class="ti ti-map-2"></i>Revenue Map</div>
-      </div>
-      <div id="top-pane-rank">
-        <div class="chiprow" id="top-dept-chips"></div>
-        <div class="chiprow" id="top-cat-chips"></div>
-        <div class="topctrl">
-          <label>Top N <input type="range" id="top-n-range" min="5" max="${Math.max(20,items.length||20)}" value="10"><b id="top-n-out">10</b></label>
-          <span class="topsummary" id="top-summary"></span>
-          <button class="btn2" id="top-xlsx"><i class="ti ti-file-spreadsheet"></i>Export Excel</button>
-        </div>
-        <div id="top-ranklist"></div>
-      </div>
-      <div id="top-pane-cat" style="display:none">
-        <section class="grid2b">
-          <div class="card pad"><div class="sect-h"><i class="ti ti-building-store"></i>ตามแผนก (Department)</div><div id="top-dept-bars"></div></div>
-          <div class="card pad" style="text-align:center"><div class="sect-h" style="margin-bottom:6px"><i class="ti ti-chart-pie"></i>สัดส่วนตามแผนก</div>
-            <div class="ring-wrap"><div class="ring" id="top-dept-ring"></div><div class="ring-mid">แผนก</div></div>
-            <div class="legend" style="flex-direction:column;align-items:flex-start;margin-top:14px;gap:6px" id="top-dept-leg"></div></div>
-        </section>
-        <section class="grid2b">
-          <div class="card pad"><div class="sect-h"><i class="ti ti-category-2"></i>ตามหมวดหมู่ (Category)</div><div id="top-cat-bars"></div></div>
-          <div class="card pad" style="text-align:center"><div class="sect-h" style="margin-bottom:6px"><i class="ti ti-chart-pie"></i>สัดส่วนตามหมวดหมู่</div>
-            <div class="ring-wrap"><div class="ring" id="top-cat-ring"></div><div class="ring-mid">หมวดหมู่</div></div>
-            <div class="legend" style="flex-direction:column;align-items:flex-start;margin-top:14px;gap:6px" id="top-cat-leg"></div></div>
-        </section>
-        <section class="card pad"><div class="sect-h"><i class="ti ti-grid-dots"></i>แผนก × หมวดหมู่ <small>· สีเข้ม = ยอดขายสูง</small></div><div id="top-heatmap" class="heat2"></div></section>
-      </div>
-      <div id="top-pane-map" style="display:none">
-        <div class="sect-h"><i class="ti ti-map-2"></i>Revenue Map <small>· ขนาดกล่อง = สัดส่วนยอดขายของแผนก</small></div>
-        <div class="tmap" id="top-treemap"></div>
-      </div>
+    ${kpi([{icon:"ti-tools-kitchen-2",lbl:"เมนูที่ขายได้",v:d.topItems.length*7},{icon:"ti-shopping-bag",lbl:"จำนวนจาน (Top10)",v:totQ},{icon:"ti-cash",lbl:"ยอด Top10",v:totS,pre:"฿"},{icon:"ti-flame",lbl:"เมนูอันดับ 1 (จาน)",v:d.topItems[0].qty}])}
+    <section class="grid2">
+      <div class="card pad"><div class="sect-h"><i class="ti ti-trophy"></i>Top 10 เมนูขายดี <small>· ตามยอดขาย</small></div><div id="topbars"></div></div>
+      <div class="card pad" style="text-align:center"><div class="sect-h" style="margin-bottom:6px"><i class="ti ti-chart-pie"></i>สัดส่วนตามหมวด</div>
+        <div class="ring-wrap"><div class="ring" id="cat-ring"></div><div class="ring-mid">หมวด<br>เมนู</div></div>
+        <div class="legend" style="flex-direction:column;align-items:flex-start;margin-top:14px;gap:6px" id="cat-leg"></div></div>
     </section>
   </div>`;
 },
@@ -669,143 +569,11 @@ const WIRE={
     window._monTimer=setInterval(refreshMonitor,60000);
   },
   top(d){
-    const items=(d.itemsFull&&d.itemsFull.length)?d.itemsFull:[];
-    const state={dept:'ทั้งหมด',cat:'ทั้งหมด',topN:10};
-    const hueColors=n=>{const base=[css('--gold'),css('--blue'),'#9c9c93','#c98c4a','#7aa874','#c06b9e','#5aa0a0','#b08fd8'];
-      const out=[];for(let i=0;i<n;i++)out.push(base[i%base.length]);return out;};
-
-    const depts=['ทั้งหมด',...Array.from(new Set(items.map(i=>i.dept))).sort()];
-    const catsFor=dep=>{const pool=dep==='ทั้งหมด'?items:items.filter(i=>i.dept===dep);
-      return ['ทั้งหมด',...Array.from(new Set(pool.map(i=>i.cat))).sort()];};
-    const filtered=()=>items.filter(i=>(state.dept==='ทั้งหมด'||i.dept===state.dept)&&(state.cat==='ทั้งหมด'||i.cat===state.cat));
-
-    function renderChips(){
-      const dEl=$('#top-dept-chips'),cEl=$('#top-cat-chips');
-      if(!dEl||!cEl) return;
-      dEl.innerHTML=depts.map(dd=>`<span class="chip${dd===state.dept?' on':''}" data-v="${dd}">${dd}</span>`).join('');
-      const cats=catsFor(state.dept);
-      if(!cats.includes(state.cat)) state.cat='ทั้งหมด';
-      cEl.innerHTML=cats.map(c=>`<span class="chip${c===state.cat?' on':''}" data-v="${c}">${c}</span>`).join('');
-      dEl.querySelectorAll('.chip').forEach(el=>el.onclick=()=>{state.dept=el.dataset.v;state.cat='ทั้งหมด';renderChips();renderRank();});
-      cEl.querySelectorAll('.chip').forEach(el=>el.onclick=()=>{state.cat=el.dataset.v;renderChips();renderRank();});
-    }
-
-    function renderRank(){
-      const f=filtered().slice().sort((a,b)=>b.sales-a.sales);
-      const n=Math.min(state.topN,f.length);
-      const top=f.slice(0,n);
-      const label=[state.dept,state.cat].filter(x=>x!=='ทั้งหมด').join(' › ')||'ทั้งหมด';
-      const sEl=$('#top-summary'); if(sEl) sEl.textContent=`${label} · ${f.length.toLocaleString('en-US')} รายการ`;
-      const list=$('#top-ranklist'); if(!list) return;
-      list.innerHTML = top.length ? top.map((it,i)=>{
-        const rc=i<3?'r'+(i+1):'';
-        return `<div class="rankrow ${rc}"><span class="rk2">#${i+1}</span>
-          <div class="rankmain"><div class="rankname" title="${it.name}">${it.name}</div>
-            <div class="ranksub">${it.qty.toLocaleString('en-US')} จาน · ${it.txn.toLocaleString('en-US')} บิล
-              <span class="rankbadge">${it.dept}</span><span class="rankbadge c">${it.cat}</span></div></div>
-          <div class="rankamt">${baht(it.sales)}</div></div>`;
-      }).join('') : '<div style="padding:28px;text-align:center;color:var(--fg3);font-size:12px">ไม่มีข้อมูลในตัวกรองนี้</div>';
-    }
-
-    function wireSubtabs(){
-      const tabs=document.querySelectorAll('#top-subtabs .subtab');
-      tabs.forEach(t=>t.onclick=()=>{
-        tabs.forEach(x=>x.classList.remove('on'));t.classList.add('on');
-        ['rank','cat','map'].forEach(id=>{const p=$('#top-pane-'+id);if(p)p.style.display=(id===t.dataset.tab?'':'none');});
-        if(t.dataset.tab==='map') renderTreemap();
-      });
-    }
-
-    function wireSlider(){
-      const sl=$('#top-n-range'),out=$('#top-n-out');
-      if(!sl) return;
-      sl.oninput=()=>{state.topN=+sl.value;out.textContent=sl.value;renderRank();};
-    }
-
-    function wireExport(){
-      const btn=$('#top-xlsx'); if(!btn) return;
-      btn.onclick=()=>{
-        const f=filtered().slice().sort((a,b)=>b.sales-a.sales);
-        const rows=[['#','เมนู','แผนก','หมวดหมู่','จำนวน (จาน)','บิล','ยอดขาย (฿)']];
-        f.forEach((it,i)=>rows.push([i+1,it.name,it.dept,it.cat,it.qty,it.txn,it.sales]));
-        const ws=XLSX.utils.aoa_to_sheet(rows);
-        ws['!cols']=[{wch:5},{wch:36},{wch:16},{wch:20},{wch:12},{wch:8},{wch:14}];
-        const wb=XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb,ws,'รายการขายดี');
-        const label=[state.dept,state.cat].filter(x=>x!=='ทั้งหมด').join('_')||'all';
-        const stamp=(d.dateTo||'export').toString().replace(/\//g,'-');
-        XLSX.writeFile(wb,`top_items_${label}_${stamp}.xlsx`);
-      };
-    }
-
-    function renderCatBreakdown(){
-      const byDept={},byCat={};
-      items.forEach(i=>{byDept[i.dept]=(byDept[i.dept]||0)+i.sales;byCat[i.cat]=(byCat[i.cat]||0)+i.sales;});
-      const deptArr=Object.entries(byDept).sort((a,b)=>b[1]-a[1]);
-      const catArr=Object.entries(byCat).sort((a,b)=>b[1]-a[1]).slice(0,12);
-
-      const maxD=Math.max(1,...deptArr.map(x=>x[1]));
-      const db=$('#top-dept-bars');
-      if(db) db.innerHTML=deptArr.map(([nm,v],i)=>`<div class="brow"><span class="rk">${i+1}</span><span class="nm" title="${nm}">${nm}</span><span class="track"><span class="fill" data-w="${(v/maxD*100).toFixed(1)}%"></span></span><span class="v">${baht(v)}</span></div>`).join('');
-      const dTot=deptArr.reduce((a,b)=>a+b[1],0)||1;
-      const dCols=hueColors(deptArr.length);
-      if($('#top-dept-ring')){donut($('#top-dept-ring'),deptArr.map(x=>x[1]),dCols);animRing($('#top-dept-ring'),deptArr.length?Math.round(deptArr[0][1]/dTot*100):0);}
-      const dl=$('#top-dept-leg'); if(dl) dl.innerHTML=deptArr.map(([nm,v],i)=>`<span><span class="dot" style="background:${dCols[i]}"></span>${nm} ${(v/dTot*100).toFixed(0)}%</span>`).join('');
-
-      const maxC=Math.max(1,...catArr.map(x=>x[1]));
-      const cb=$('#top-cat-bars');
-      if(cb) cb.innerHTML=catArr.map(([nm,v],i)=>`<div class="brow"><span class="rk">${i+1}</span><span class="nm" title="${nm}">${nm}</span><span class="track"><span class="fill" data-w="${(v/maxC*100).toFixed(1)}%"></span></span><span class="v">${baht(v)}</span></div>`).join('');
-      const cTot=catArr.reduce((a,b)=>a+b[1],0)||1;
-      const cCols=hueColors(catArr.length);
-      if($('#top-cat-ring')){donut($('#top-cat-ring'),catArr.map(x=>x[1]),cCols);animRing($('#top-cat-ring'),catArr.length?Math.round(catArr[0][1]/cTot*100):0);}
-      const cl=$('#top-cat-leg'); if(cl) cl.innerHTML=catArr.map(([nm,v],i)=>`<span><span class="dot" style="background:${cCols[i]}"></span>${nm} ${(v/cTot*100).toFixed(0)}%</span>`).join('');
-
-      /* heatmap: แผนก (แถว) × หมวดหมู่ยอดนิยม (คอลัมน์) */
-      const hm=$('#top-heatmap');
-      if(hm){
-        const cats=catArr.map(x=>x[0]);
-        const grid={};
-        items.forEach(i=>{if(!cats.includes(i.cat))return;grid[i.dept]=grid[i.dept]||{};grid[i.dept][i.cat]=(grid[i.dept][i.cat]||0)+i.sales;});
-        const maxV=Math.max(1,...Object.values(grid).flatMap(r=>Object.values(r)));
-        hm.style.gridTemplateColumns=`90px repeat(${cats.length},1fr)`;
-        let html='<div></div>'+cats.map(c=>`<div class="hh" title="${c}">${c}</div>`).join('');
-        deptArr.map(x=>x[0]).forEach(dep=>{
-          html+=`<div class="dd">${dep}</div>`;
-          cats.forEach(c=>{
-            const v=(grid[dep]&&grid[dep][c])||0;
-            const a=(v/maxV*0.9+0.08).toFixed(2);
-            html+=`<div class="cell" title="${dep} × ${c}: ${baht(v)}" style="opacity:${v?a:0.06}"></div>`;
-          });
-        });
-        hm.innerHTML=html;
-      }
-    }
-
-    function renderTreemap(){
-      const tm=$('#top-treemap'); if(!tm||tm.dataset.done) return;
-      const byDept={};
-      items.forEach(i=>{byDept[i.dept]=byDept[i.dept]||{total:0,cats:{}};byDept[i.dept].total+=i.sales;byDept[i.dept].cats[i.cat]=(byDept[i.dept].cats[i.cat]||0)+i.sales;});
-      const arr=Object.entries(byDept).sort((a,b)=>b[1].total-a[1].total);
-      const grand=arr.reduce((a,b)=>a+b[1].total,0)||1;
-      const cols=hueColors(arr.length);
-      tm.innerHTML=arr.map(([nm,o],i)=>{
-        const pct=o.total/grand*100;
-        const topCats=Object.entries(o.cats).sort((a,b)=>b[1]-a[1]).slice(0,3);
-        return `<div class="tm-dept" style="background:${cols[i]};flex:${Math.max(pct,4)} 1 ${Math.max(pct*2,90)}px">
-          <div class="tm-lbl">${nm} · ${pct.toFixed(1)}%</div>
-          <div class="tm-v">${baht(o.total)}</div>
-          <div class="tm-sub">${topCats.map(([c])=>`<span class="tm-cat">${c}</span>`).join('')}</div>
-        </div>`;
-      }).join('');
-      tm.dataset.done='1';
-    }
-
-    renderChips();
-    renderRank();
-    wireSubtabs();
-    wireSlider();
-    wireExport();
-    renderCatBreakdown();
+    const maxS=Math.max(...d.topItems.map(i=>i.sales));
+    $('#topbars').innerHTML=d.topItems.map((it,i)=>`<div class="brow"><span class="rk">${i+1}</span><span class="nm" title="${it.name}">${it.name}</span><span class="track"><span class="fill" data-w="${(it.sales/maxS*100).toFixed(1)}%"></span></span><span class="v">${baht(it.sales)}</span></div>`).join('');
+    const cols=[css('--gold'),css('--blue'),'#9c9c93','#c98c4a'];
+    donut($('#cat-ring'),d.itemCats.map(c=>c.pct),cols);animRing($('#cat-ring'),d.itemCats[0].pct);
+    $('#cat-leg').innerHTML=d.itemCats.map((c,i)=>`<span><span class="dot" style="background:${cols[i]}"></span>${c.name} ${c.pct}%</span>`).join('');
   },
   menu(d){
     const pops=d.menuEng.map(m=>m.pop).sort((a,b)=>a-b),mars=d.menuEng.map(m=>m.margin).sort((a,b)=>a-b);
@@ -893,13 +661,6 @@ function biQuery(){
   if(FILTERS.shop)  qs.set('shop',FILTERS.shop);
   return '/api/bi?'+qs.toString();
 }
-function itemsQuery(){
-  const {date_from,date_to}=dateRangeFor(FILTERS.date);
-  const qs=new URLSearchParams({date_from,date_to});
-  if(FILTERS.brand) qs.set('brand',FILTERS.brand);
-  if(FILTERS.shop)  qs.set('shop',FILTERS.shop);
-  return '/api/bi/items?'+qs.toString();
-}
 function monitorQuery(){
   const qs=new URLSearchParams();
   if(FILTERS.brand) qs.set('brand',FILTERS.brand);
@@ -948,12 +709,11 @@ async function refreshMonitor(){
 /* ===== load /api/bi + re-render หน้าปัจจุบัน (ใช้ทั้งตอน boot และตอนเปลี่ยน filter) ===== */
 async function loadAndRender(){
   try{
-    const [r,ri]=await Promise.all([ apiFetch(biQuery()), apiFetch(itemsQuery()) ]);
+    const r=await apiFetch(biQuery());
     if(!r.ok) throw new Error('http '+r.status);
     const j=await r.json();
     Object.assign(DATA, j);            // merge: field ไหนไม่มีจาก API ใช้ตัวอย่างเดิม
     populateShopFilter(DATA.branches);
-    if(ri.ok){ const ij=await ri.json(); if(ij.items) DATA.itemsFull=ij.items; }
   }catch(e){
     if(e.message==='unauthorized') throw e;
     console.warn('API offline → ใช้ข้อมูลตัวอย่าง:', e.message||e);
