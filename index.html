@@ -230,6 +230,7 @@ table.tb td.r,table.tb th.r{text-align:right}
       <div class="spacer"></div>
       <select class="f" id="f-date">
         <option value="today">วันนี้</option>
+        <option value="yesterday">เมื่อวานนี้</option>
         <option value="7d">7 วันล่าสุด</option>
         <option value="30d">30 วันล่าสุด</option>
         <option value="month">เดือนนี้</option>
@@ -646,6 +647,7 @@ const FILTERS = { date: 'today', brand: '', shop: '' };
 function dateRangeFor(preset){
   const fmt=d=>d.toISOString().slice(0,10);
   const today=new Date();
+  if(preset==='yesterday'){ const y=new Date(today); y.setDate(y.getDate()-1); return {date_from:fmt(y), date_to:fmt(y)}; }
   if(preset==='7d'){ const f=new Date(today); f.setDate(f.getDate()-6); return {date_from:fmt(f), date_to:fmt(today)}; }
   if(preset==='30d'){ const f=new Date(today); f.setDate(f.getDate()-29); return {date_from:fmt(f), date_to:fmt(today)}; }
   if(preset==='month'){ const f=new Date(today.getFullYear(), today.getMonth(), 1); return {date_from:fmt(f), date_to:fmt(today)}; }
